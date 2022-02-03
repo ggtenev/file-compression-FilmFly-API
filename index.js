@@ -1,11 +1,12 @@
 const path = require("path");
 const fs = require("fs");
-const archiver = require("archiver");
+
 const JSZip = require("jszip");
 
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
+const { file } = require("jszip");
 
 const app = express();
 var zip = new JSZip();
@@ -31,90 +32,103 @@ function readFiles(dirname, onFileContent, onError) {
   });
 }
 
-(async () => {
+const createZip = async (req, res, next) => {
   try {
     const images = [];
     // const pdfData = fs.readFileSync(__dirname + "/images/one.png");
     // console.log(pdfData);
     // zip.file("one.png", pdfData);
     // var img = zip.folder("files");
-    fs.readdir(__dirname + "/images", (err, files) => {
+
+    fs.readdir(__dirname + `/${req.params.id}`, async (err, files) => {
       if (err) {
         console.log("err");
         return;
       }
       // console.log(files);
       for (const file of files) {
-        images.push(`images/${file}`);
-        console.log(`images/${file}`);
-        const imageData = fs.readFileSync(`images/${file}`);
+        images.push(`${req.params.id}/${file}`);
+        console.log(`${req.params.id}/${file}`);
+        const imageData = fs.readFileSync(`${req.params.id}/${file}`);
         zip.file(file, imageData);
       }
 
       zip
         .generateNodeStream({ type: "nodebuffer", streamFiles: true })
-        .pipe(fs.createWriteStream("sample.zip"))
+        .pipe(fs.createWriteStream(`${req.params.id}.zip`))
         .on("finish", function () {
+          for (const file of files) {
+            fs.unlink(`${req.params.id}/${file}`, (err) => {
+              if (err) {
+                console.log("err");
+              }
+            });
+          }
           console.log("sample.zip written.");
+          fs.rmdir(__dirname + `/${req.params.id}`, () => {
+            console.log("Folder Deleted!");
+          });
         });
-
-      // setTimeout(() => {
-      //   if (images.length > 0) {
-      //     for (const image of images) {
-      //       console.log(image);
-      //       const imageData = fs.readFileSync(image);
-      //       zip.file(image, imageData);
-      //     }
-      //   }
-      // }, 1000);
     });
-
-    const images1 = ["images/comments.png", "images/one.png"];
-    const img = zip.folder("images");
   } catch (err) {
     console.error(err);
   }
-})();
+
+  next();
+};
 
 // Storage Engin That Tells/Configures Multer for where (destination) and how (filename) to save/upload our files
 const fileStorageEngine = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./images"); //important this is a direct path fron our current file to storage location
+    cb(null, `./${req.params.id}`); //important this is a direct path fron our current file to storage location
   },
   filename: (req, file, cb) => {
     cb(null, Date.now().toString() + "--" + file.originalname);
   },
 });
 
-// listen for all archive data to be written
-// 'close' event is fired only when a file descriptor is involved
-// output.on("close", function () {
-//   console.log(archive.pointer() + " total bytes");
-//   console.log(
-//     "archiver has been finalized and the output file descriptor has closed."
-//   );
-// });
+const createUserDirectory = (req, res, next) => {
+  fs.mkdir(path.join(__dirname, req.params.id), (err) => {
+    if (err) {
+      return console.error(err);
+    }
+    console.log("Directory created successfully!");
+  });
+  next();
+};
 
-// This event is fired when the data source is drained no matter what was the data source.
-// It is not part of this library but rather from the NodeJS Stream API.
-// @see: https://nodejs.org/api/stream.html#stream_event_end
-// output.on("end", function () {
-//   console.log("Data has been drained");
-// });
+const removeZipIFExists = (req, res, next) => {
+  const fileName = `${req.params.id}.zip`;
+  let fileExists = fs.existsSync(fileName);
+  if (fileExists) {
+    console.log("REEE");
+    fs.unlinkSync(`${__dirname}/${fileName}`);
+  }
+
+  next();
+};
 
 // The Multer Middleware that is passed to routes that will receive income requests with file data (multipart/formdata)
 // You can create multiple middleware each with a different storage engine config so save different files in different locations on server
 const upload = multer({ storage: fileStorageEngine });
 
 // Single File Route Handler
-app.post("/single", upload.single("image"), (req, res) => {
+app.post("/single/:id", upload.single("image"), (req, res) => {
   console.log(req.file);
   res.send("Single FIle upload success");
 });
 
 // Multiple Files Route Handler
-app.post("/multiple", upload.array("images"), (req, res) => {
-  console.log(req.files);
-  res.send("Multiple Files Upload Success");
-});
+app.post(
+  "/multiple/:id",
+  removeZipIFExists,
+  createUserDirectory,
+  upload.array("images"),
+  createZip,
+  (req, res) => {
+    console.log(req.params.id);
+
+    res.send("Multiple Files Upload Success");
+  }
+);
 app.listen(process.env.PORT || 3000);
