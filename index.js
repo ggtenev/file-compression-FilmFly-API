@@ -96,15 +96,6 @@ const createUserDirectory = (req, res, next) => {
   next();
 };
 
-const removeZipIFExists = (req, res, next) => {
-  const fileName = `${req.params.id}.zip`;
-  let fileExists = fs.existsSync(`${__dirname}/${fileName}`);
-  if (fileExists) {
-    fs.unlinkSync(`${__dirname}/${fileName}`);
-  }
-  next();
-};
-
 // The Multer Middleware that is passed to routes that will receive income requests with file data (multipart/formdata)
 // You can create multiple middleware each with a different storage engine config so save different files in different locations on server
 const upload = multer({ storage: fileStorageEngine });
@@ -118,13 +109,21 @@ app.post("/single/:id", upload.single("image"), (req, res) => {
 // Multiple Files Route Handler
 app.post(
   "/multiple/:id",
-  removeZipIFExists,
   createUserDirectory,
   upload.array("images"),
   createZip,
   (req, res) => {
     try {
-      return res.send({ message: "success" });
+      //Step 1: get the zip file and upload it to the s3
+      //Step 2: fs.unlinkSync(`${__dirname}/${fileName}`);
+      //step 3: return an html page with a link to the zip file (one time thing)
+
+      url = "";
+      return res.send(`
+      <html>
+      <a href="${url}">Download</a>
+      </html>
+      `);
     } catch (ex) {
       return res.status(400).json({ message: ex.message });
     }
@@ -133,3 +132,4 @@ app.post(
   }
 );
 app.listen(process.env.PORT || 3000);
+//cron job to delete the zip file after 7 day from s3
