@@ -6,7 +6,6 @@ const JSZip = require("jszip");
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
-const { file } = require("jszip");
 
 const app = express();
 var zip = new JSZip();
@@ -35,6 +34,10 @@ function readFiles(dirname, onFileContent, onError) {
 const createZip = async (req, res, next) => {
   try {
     const images = [];
+    // const pdfData = fs.readFileSync(__dirname + "/images/one.png");
+    // console.log(pdfData);
+    // zip.file("one.png", pdfData);
+    // var img = zip.folder("files");
 
     fs.readdir(__dirname + `/${req.params.id}`, async (err, files) => {
       if (err) {
@@ -95,12 +98,10 @@ const createUserDirectory = (req, res, next) => {
 
 const removeZipIFExists = (req, res, next) => {
   const fileName = `${req.params.id}.zip`;
-  let fileExists = fs.existsSync(fileName);
+  let fileExists = fs.existsSync(`${__dirname}/${fileName}`);
   if (fileExists) {
-    console.log("REEE");
     fs.unlinkSync(`${__dirname}/${fileName}`);
   }
-
   next();
 };
 
@@ -121,10 +122,14 @@ app.post(
   createUserDirectory,
   upload.array("images"),
   createZip,
-  async (req, res) => {
-    console.log(req.params.id);
+  (req, res) => {
+    try {
+      return res.send({ message: "success" });
+    } catch (ex) {
+      return res.status(400).json({ message: ex.message });
+    }
 
-    res.send("Multiple Files Upload Success");
+    // res.send("Multiple Files Upload Success");
   }
 );
 app.listen(process.env.PORT || 3000);
