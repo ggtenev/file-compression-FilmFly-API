@@ -128,7 +128,7 @@ app.post(
   (req, res) => {
     console.log(req.params.id);
 
-    res.send("Multiple Files Upload Success");
+    // res.send("Multiple Files Upload Success");
   }
 );
 app.listen(process.env.PORT || 3000);
