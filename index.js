@@ -35,10 +35,6 @@ function readFiles(dirname, onFileContent, onError) {
 const createZip = async (req, res, next) => {
   try {
     const images = [];
-    // const pdfData = fs.readFileSync(__dirname + "/images/one.png");
-    // console.log(pdfData);
-    // zip.file("one.png", pdfData);
-    // var img = zip.folder("files");
 
     fs.readdir(__dirname + `/${req.params.id}`, async (err, files) => {
       if (err) {
@@ -125,10 +121,10 @@ app.post(
   createUserDirectory,
   upload.array("images"),
   createZip,
-  (req, res) => {
+  async (req, res) => {
     console.log(req.params.id);
 
-    // res.send("Multiple Files Upload Success");
+    res.send("Multiple Files Upload Success");
   }
 );
 app.listen(process.env.PORT || 3000);
