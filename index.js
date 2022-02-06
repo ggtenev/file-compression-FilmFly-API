@@ -6,8 +6,8 @@ const JSZip = require("jszip");
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
-const responseTemplate = require("./responseTemplate");
 const { upload_to_s3 } = require("./utils");
+const template = require("./template");
 
 const app = express();
 var zip = new JSZip();
@@ -120,16 +120,16 @@ app.post(
         fileName: `${req.params.id}.zip`,
         fileLocation: `${__dirname}/${req.params.id}.zip`,
       });
-      fs.unlinkSync(`${__dirname}/${fileName}`);
-      return res
-        .status(200)
-        .json(
-          responseTemplate(
-            url,
+      fs.unlinkSync(`${__dirname}/${req.params.id}.zip`);
+      return res.status(200).send(
+        template({
+          link: url,
+          image:
             "data:image/jpeg;base64," +
-              fs.readFileSync("./backgroun-image.jpeg", "base64")
-          )
-        );
+            fs.readFileSync("./backgroun-image.jpeg", "base64"),
+          fileName: `${req.params.id}.zip`,
+        })
+      );
     } catch (ex) {
       return res.status(400).json({ message: ex.message });
     }
