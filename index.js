@@ -6,6 +6,8 @@ const JSZip = require("jszip");
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
+const responseTemplate = require("./responseTemplate");
+const { upload_to_s3 } = require("./utils");
 
 const app = express();
 var zip = new JSZip();
@@ -112,18 +114,22 @@ app.post(
   createUserDirectory,
   upload.array("images"),
   createZip,
-  (req, res) => {
+  async (req, res) => {
     try {
-      //Step 1: get the zip file and upload it to the s3
-      //Step 2: fs.unlinkSync(`${__dirname}/${fileName}`);
-      //step 3: return an html page with a link to the zip file (one time thing)
-
-      url = "";
-      return res.send(`
-      <html>
-      <a href="${url}">Download</a>
-      </html>
-      `);
+      let url = await upload_to_s3({
+        fileName: `${req.params.id}.zip`,
+        fileLocation: `${__dirname}/${req.params.id}.zip`,
+      });
+      fs.unlinkSync(`${__dirname}/${fileName}`);
+      return res
+        .status(200)
+        .json(
+          responseTemplate(
+            url,
+            "data:image/jpeg;base64," +
+              fs.readFileSync("./backgroun-image.jpeg", "base64")
+          )
+        );
     } catch (ex) {
       return res.status(400).json({ message: ex.message });
     }
