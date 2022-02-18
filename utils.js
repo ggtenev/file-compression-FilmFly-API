@@ -78,12 +78,6 @@ exports.upload_to_s3 = async (req, res, next) => {
       secretAccessKey: AWS_SECRET_ACCESS_KEY_ID,
       Bucket: AWS_BUCKET_NAME,
     });
-    console.log({
-      AWS_ACCESS_KEY_ID,
-      AWS_SECRET_ACCESS_KEY_ID,
-      AWS_REGION,
-      AWS_BUCKET_NAME,
-    });
     const s3 = new AWS.S3();
     const { base64, user_id } = req.body;
 
@@ -93,21 +87,16 @@ exports.upload_to_s3 = async (req, res, next) => {
       ContentType: "application/zip",
       // ACL: "public-read",
       // eslint-disable-next-line no-undef
-      Body: Buffer.from(
-        base64.split("base64,")[1] ? base64.split("base64,")[1] : base64,
-        "base64"
-      ),
+      Body: Buffer.from(base64.split("base64,")[1], "base64"),
     };
     let data = await s3.upload(params).promise();
     return res.status(200).json({
-      code: 200,
       message: "File uploaded successfully",
       success: true,
       url: data.Location,
     });
   } catch (ex) {
-    return res.status(400).json({
-      code: 500,
+    return res.status(500).json({
       message: ex.message,
       success: false,
     });
