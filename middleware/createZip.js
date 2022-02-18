@@ -21,7 +21,10 @@ module.exports = async (req, res, next) => {
       },
     });
     req.body.base64 = zipFile;
-    fs.rmdirSync(path.join(__dirname, "../uploads"), { recursive: true });
+    fs.readdirSync(folder).forEach((file) => {
+      fs.unlinkSync(path.join(folder, file));
+    });
+    fs.rmdirSync(folder);
     next();
   } catch (ex) {
     return res.status(400).json({
