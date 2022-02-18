@@ -96,6 +96,9 @@ exports.upload_to_s3 = async (req, res, next) => {
       url: data.Location,
     });
   } catch (ex) {
+    console.log({
+      ex,
+    });
     return res.status(500).json({
       message: ex.message,
       success: false,
