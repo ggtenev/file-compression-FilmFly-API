@@ -25,15 +25,19 @@ exports.upload_to_s3 = async (req, res, next) => {
         : base64,
     };
     let data = await s3.upload(params).promise();
-    return res.status(200).json({
+    res.status(200).json({
       message: "File uploaded successfully",
       success: true,
       url: data.Location,
     });
+    res.end();
+    return;
   } catch (ex) {
-    return res.status(500).json({
+    res.status(500).json({
       message: ex.message,
       success: false,
     });
+    res.end();
+    return;
   }
 };
