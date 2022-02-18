@@ -152,5 +152,5 @@ app.get("/test", (req, res) => {
   console.log("test");
   res.send("Working");
 });
-app.listen(process.env.PORT || 88, () => console.log("listening 8081"));
+app.listen(process.env.PORT || 8080, () => console.log("listening 8081"));
 //cron job to delete the zip file after 7 day from s3
