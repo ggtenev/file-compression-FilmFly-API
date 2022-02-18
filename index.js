@@ -136,7 +136,7 @@ const upload = multer({ storage: fileStorageEngine });
 
 // Single File Route Handler
 app.post("/single/:id", upload.single("image"), (req, res) => {
-  console.log(req.file);
+  // console.log(req.file);
   res.send("Single FIle upload success");
 });
 
@@ -152,7 +152,7 @@ app.get("/test", (req, res) => {
   console.log("test");
   res.send("Working");
 });
-app.listen(process.env.PORT || 8081, () =>
+app.listen(process.env.PORT || 3000, () =>
   console.log("listening 8081", process.env.PORT)
 );
 //cron job to delete the zip file after 7 day from s3
