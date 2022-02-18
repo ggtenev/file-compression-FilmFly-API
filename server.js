@@ -8,8 +8,8 @@ const server = express();
 const multer = require("multer");
 server.use(cors());
 
-server.use(express.json({ limit: "5000000mb" }));
-server.use(express.urlencoded({ limit: "5000000mb" }));
+server.use(express.json({ limit: Infinity }));
+server.use(express.urlencoded({ limit: Infinity }));
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -20,10 +20,21 @@ const upload = multer({
   }),
 });
 
+/**
+ * This Api is used to upload files to S3 bucket, You
+ * need to send base64 in body along with user_id and
+ * api_key in the authroization header.
+ */
 server.post("/v1/upload", hasApiKey, upload_to_s3);
+
+/**
+ *  This Api is used to upload files to S3 bucket,this api compressess the
+ *  uploaded files creates a zip from them , You need to send files as a
+ *  formdata along with user_id and api_key in the authroization header.
+ */
 server.post(
   "/v2/upload",
-  [hasApiKey, upload.array("images"), createZip, upload_to_s3],
+  [hasApiKey, upload.array("files"), createZip, upload_to_s3],
   upload_to_s3
 );
 
