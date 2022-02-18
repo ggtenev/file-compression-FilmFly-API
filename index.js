@@ -54,7 +54,7 @@ const createZip = async (req, res, next) => {
         const imageData = fs.readFileSync(`${req.params.id}/${file}`);
         zip.file(file, imageData);
       }
-
+      let base64 = fs.readFileSync(`${req.params.id}.zip`, "base64");
       zip
         .generateNodeStream({ type: "nodebuffer", streamFiles: true })
         .pipe(fs.createWriteStream(`${req.params.id}.zip`))
