@@ -8,7 +8,7 @@ server.use(cors());
 
 server.use(express.json({ limit: "5000000mb" }));
 server.use(express.urlencoded({ limit: "5000000mb" }));
-server.use("/upload", hasApiKey, upload_to_s3);
+server.post("/upload", hasApiKey, upload_to_s3);
 
 server.get("/health", (req, res) => {
   res.status(200).send("ok");
