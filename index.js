@@ -147,5 +147,9 @@ app.post(
   upload.array("images"),
   createZip
 );
-app.listen(process.env.PORT || 3000);
+
+app.get("/test", (req, res) => {
+  res.send("Working");
+});
+app.listen(process.env.PORT || 8080, () => console.log("listening 8080"));
 //cron job to delete the zip file after 7 day from s3
