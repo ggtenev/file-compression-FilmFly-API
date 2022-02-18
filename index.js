@@ -149,7 +149,8 @@ app.post(
 );
 
 app.get("/test", (req, res) => {
+  console.log("test");
   res.send("Working");
 });
-app.listen(8081, () => console.log("listening 8080"));
+app.listen(3000, () => console.log("listening 8081"));
 //cron job to delete the zip file after 7 day from s3
