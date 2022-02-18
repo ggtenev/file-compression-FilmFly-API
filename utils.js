@@ -87,7 +87,9 @@ exports.upload_to_s3 = async (req, res, next) => {
       ContentType: "application/zip",
       // ACL: "public-read",
       // eslint-disable-next-line no-undef
-      Body: Buffer.from(base64.split("base64,")[1], "base64"),
+      Body: base64.includes("base64,")
+        ? Buffer.from(base64.split("base64,")[1], "base64")
+        : base64,
     };
     let data = await s3.upload(params).promise();
     return res.status(200).json({
