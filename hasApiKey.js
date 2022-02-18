@@ -4,14 +4,21 @@ module.exports = (req, res, next) => {
   try {
     let { authorization } = req.headers;
     authorization = authorization.split(" ")[1];
+    console.log({ authorization });
     if (!authorization) {
       return res.status(401).send("Unauthorized");
     }
     if (authorization !== process.env.API_KEY) {
       return res.status(401).send("Unauthorized");
     }
+    console.log({
+      api: process.env.API_KEY,
+    });
     next();
   } catch (ex) {
+    console.log({
+      message: ex,
+    });
     return res.status(401).json({
       message: ex.message,
     });
