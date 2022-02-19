@@ -28,7 +28,7 @@ const upload = multer({
  */
 server.post(
   "/v1/upload",
-  [hasApiKey, upload.array("images"), createZip],
+  [hasApiKey, upload.array("files"), createZip],
   upload_to_s3
 );
 server.get("/health", (req, res) => {
