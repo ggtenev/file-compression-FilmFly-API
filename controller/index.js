@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require("fs");
-exports.upload_to_s3_v2 = async (req, res, next) => {
+exports.upload_to_s3 = async (req, res, next) => {
   try {
     const AWS = require("aws-sdk");
     const {

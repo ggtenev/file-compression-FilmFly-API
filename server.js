@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const hasApiKey = require("./middleware/hasApiKey");
-const { upload_to_s3_v2 } = require("./controller");
+const { upload_to_s3 } = require("./controller");
 const createZip = require("./middleware/createZip");
 const server = express();
 const multer = require("multer");
