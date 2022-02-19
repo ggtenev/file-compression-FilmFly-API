@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const hasApiKey = require("./middleware/hasApiKey");
-const { upload_to_s3 } = require("./controller");
+const { upload_to_s3, downloadZip } = require("./controller");
 const createZip = require("./middleware/createZip");
 const server = express();
 const multer = require("multer");
@@ -34,6 +34,7 @@ server.post(
 server.get("/health", (req, res) => {
   res.status(200).send("ok");
 });
+server.get("/v1/get-file/:file_path", downloadZip);
 server.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
