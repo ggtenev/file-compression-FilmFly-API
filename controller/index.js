@@ -15,7 +15,7 @@ exports.upload_to_s3 = async (req, res, next) => {
     });
     const s3 = new AWS.S3();
     const { base64, user_id } = req.body;
-
+    let prev = 0;
     const params = {
       Bucket: AWS_BUCKET_NAME,
       Key: `${user_id}.zip`,
@@ -24,14 +24,23 @@ exports.upload_to_s3 = async (req, res, next) => {
         ? Buffer.from(base64.split("base64,")[1], "base64")
         : base64,
     };
-    console.log("uploading to s3 ...");
-    let data = await s3.upload(params).promise();
-    console.log("uploaded to s3 ...");
-    return res.status(200).json({
-      message: "File uploaded successfully",
-      success: true,
-      url: data.Location,
-    });
+    await s3
+      .upload(params, (err, data) => {
+        if (err) return res.status(400).json({ message: err.message });
+        return res.status(200).json({
+          message: "File uploaded successfully",
+          success: true,
+          url: data.Location,
+        });
+      })
+      .on("httpUploadProgress", function (evt) {
+        if (Math.round((evt.loaded * 100) / evt.total) !== prev) {
+          console.log(
+            `uploading to s3 : ${Math.round((evt.loaded * 100) / evt.total)}%`
+          );
+          prev = Math.round((evt.loaded * 100) / evt.total);
+        }
+      });
   } catch (ex) {
     return res.status(500).json({
       message: ex.message,
