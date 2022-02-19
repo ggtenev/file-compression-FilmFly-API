@@ -11,6 +11,11 @@ module.exports = async (req, res, next) => {
         message: "No files found",
       });
     }
+    if (!req?.body?.user_id) {
+      return res.status(400).json({
+        message: "user_id is required",
+      });
+    }
     const files = req.files;
     console.log({
       files,

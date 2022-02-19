@@ -2,15 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const hasApiKey = require("./middleware/hasApiKey");
-const { upload_to_s3, upload_to_s3_v2 } = require("./controller");
+const { upload_to_s3_v2 } = require("./controller");
 const createZip = require("./middleware/createZip");
 const server = express();
 const multer = require("multer");
-const uploadProgress = require("./middleware/uploadProgress");
 server.use(cors());
 
-server.use(express.json({ limit: Infinity }));
-server.use(express.urlencoded({ limit: Infinity }));
+server.use(express.json({ limit: "50mb" }));
+server.use(express.urlencoded({ limit: "50mb" }));
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -21,13 +20,6 @@ const upload = multer({
     },
   }),
 });
-
-/**
- * This Api is used to upload files to S3 bucket, You
- * need to send base64 in body along with user_id and
- * api_key in the authroization header.
- */
-server.post("/v1/upload", hasApiKey, upload_to_s3);
 
 /**
  *  This Api is used to upload files to S3 bucket,this api compressess the
