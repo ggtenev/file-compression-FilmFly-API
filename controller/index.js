@@ -75,30 +75,22 @@ exports.upload_to_s3_v2 = async (req, res, next) => {
       ContentType: "application/zip",
       Body: fs.createReadStream(file_path),
     };
-    await s3
-      .upload(params, (err, data) => {
-        //remove all files in uploads folder but not the folder itself
-        fs.readdir(path.join(__dirname, "../uploads"), (err, files) => {
+    console.log("started uploading to s3");
+    let data = await s3.upload(params).promise();
+    fs.readdir(path.join(__dirname, "../uploads"), (err, files) => {
+      if (err) throw err;
+      for (const file of files) {
+        fs.unlink(path.join(__dirname, `../uploads/${file}`), (err) => {
           if (err) throw err;
-          for (const file of files) {
-            fs.unlink(path.join(__dirname, `../uploads/${file}`), (err) => {
-              if (err) throw err;
-            });
-          }
         });
-
-        if (err) return res.status(400).json({ message: err.message });
-        return res.status(200).json({
-          message: "File uploaded successfully",
-          success: true,
-          url: data.Location,
-        });
-      })
-      .on("httpUploadProgress", function (evt) {
-        console.log(
-          `uploading to s3 : ${Math.round((evt.loaded * 100) / evt.total)}%`
-        );
-      });
+      }
+    });
+    console.log("uploaded to s3 : ", data.Location);
+    return res.status(200).json({
+      message: "File uploaded successfully",
+      success: true,
+      url: data.Location,
+    });
   } catch (ex) {
     return res.status(500).json({
       message: ex.message,
