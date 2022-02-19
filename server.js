@@ -6,7 +6,6 @@ const { upload_to_s3 } = require("./controller");
 const createZip = require("./middleware/createZip");
 const server = express();
 const multer = require("multer");
-const uploadProgress = require("./middleware/uploadProgress");
 server.use(cors());
 
 server.use(express.json({ limit: Infinity }));
@@ -35,7 +34,7 @@ server.post("/v1/upload", hasApiKey, upload_to_s3);
  */
 server.post(
   "/v2/upload",
-  [hasApiKey, uploadProgress, upload.array("files"), createZip, upload_to_s3],
+  [hasApiKey, upload.array("files"), createZip, upload_to_s3],
   upload_to_s3
 );
 
