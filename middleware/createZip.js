@@ -7,6 +7,9 @@ module.exports = async (req, res, next) => {
     console.time("zipDone");
     const zip = new JSZip();
     const files = req.files;
+    console.log({
+      files,
+    });
     files.forEach((file) => {
       file.buffer = fs.readFileSync(file.path);
       zip.file(file.filename, file.buffer);
