@@ -24,7 +24,9 @@ exports.upload_to_s3 = async (req, res, next) => {
         ? Buffer.from(base64.split("base64,")[1], "base64")
         : base64,
     };
+    console.log("uploading to s3 ...");
     let data = await s3.upload(params).promise();
+    console.log("uploaded to s3 ...");
     return res.status(200).json({
       message: "File uploaded successfully",
       success: true,

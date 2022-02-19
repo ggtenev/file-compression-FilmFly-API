@@ -9,6 +9,7 @@ module.exports = async (req, res, next) => {
       file.buffer = fs.readFileSync(file.path);
       zip.file(file.filename, file.buffer);
     });
+    console.log("creating zip ...");
     const zipFile = await zip.generateAsync({
       type: "nodebuffer",
       compression: "DEFLATE",
@@ -16,6 +17,7 @@ module.exports = async (req, res, next) => {
         level: 9,
       },
     });
+    console.log("zip created...");
     req.body.base64 = zipFile;
     fs.readdirSync(path.join(__dirname, "../uploads")).forEach((file) => {
       fs.unlinkSync(path.join(__dirname, "../uploads", file));
