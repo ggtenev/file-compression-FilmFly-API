@@ -5,7 +5,6 @@ module.exports = async (req, res, next) => {
   try {
     console.log("started zip creation");
     console.time("zipDone");
-    console.log({ files: req.files, file: req.file, body: req.body });
     const zip = new JSZip();
     if (!req?.files?.length) {
       return res.status(400).json({
@@ -25,16 +24,14 @@ module.exports = async (req, res, next) => {
       file.buffer = fs.readFileSync(file.path);
       zip.file(file.filename, file.buffer);
     });
+    let file_path = path.join(__dirname, `../uploads/${Date.now()}.zip`);
     const zipFile = zip
       .generateNodeStream({ type: "nodebuffer", streamFiles: true })
-      .pipe(
-        fs.createWriteStream(
-          path.join(__dirname, `../uploads/${req.body.user_id}.zip`)
-        )
-      );
+      .pipe(fs.createWriteStream(file_path));
     zipFile.on("finish", () => {
       console.timeEnd("zipDone");
       console.log("zip created");
+      req.body.file_path = file_path;
       next();
     });
   } catch (ex) {

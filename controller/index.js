@@ -16,11 +16,10 @@ exports.upload_to_s3 = async (req, res, next) => {
       Bucket: AWS_BUCKET_NAME,
     });
     const s3 = new AWS.S3();
-    const { user_id } = req.body;
-    const file_path = path.join(__dirname, `../uploads/${user_id}.zip`);
+    const { user_id, file_path } = req.body;
     const params = {
       Bucket: AWS_BUCKET_NAME,
-      Key: `${user_id}.zip`,
+      Key: `${user_id}/${Date.now()}.zip`,
       ContentType: "application/zip",
       Body: fs.createReadStream(file_path),
     };
