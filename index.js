@@ -54,7 +54,7 @@ const createZip = async (req, res, next) => {
         const imageData = fs.readFileSync(`${req.params.id}/${file}`);
         zip.file(file, imageData);
       }
-
+      let base64 = fs.readFileSync(`${req.params.id}.zip`, "base64");
       zip
         .generateNodeStream({ type: "nodebuffer", streamFiles: true })
         .pipe(fs.createWriteStream(`${req.params.id}.zip`))
@@ -152,7 +152,7 @@ app.get("/test", (req, res) => {
   console.log("test");
   res.send("Working");
 });
-app.listen(process.env.PORT || 3000, () =>
+app.listen(process.env.PORT || 8080, () =>
   console.log("listening 8081", process.env.PORT)
 );
 //cron job to delete the zip file after 7 day from s3
