@@ -39,7 +39,7 @@ exports.upload_to_s3 = async (req, res, next) => {
     return res.status(200).json({
       message: "File uploaded successfully",
       success: true,
-      url: `http://localhost:8080/v1/get-file/${String(KEY)
+      url: `http://13.57.42.53:8080/v1/get-file/${String(KEY)
         .split("/")
         .join("__")}`,
     });
