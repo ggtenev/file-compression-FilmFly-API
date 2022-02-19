@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const hasApiKey = require("./middleware/hasApiKey");
-const { upload_to_s3 } = require("./controller");
+const { upload_to_s3, upload_to_s3_v2 } = require("./controller");
 const createZip = require("./middleware/createZip");
 const server = express();
 const multer = require("multer");
@@ -35,8 +35,8 @@ server.post("/v1/upload", hasApiKey, upload_to_s3);
  */
 server.post(
   "/v2/upload",
-  [hasApiKey, uploadProgress, upload.array("files"), createZip, upload_to_s3],
-  upload_to_s3
+  [hasApiKey, uploadProgress, upload.array("files"), createZip],
+  upload_to_s3_v2
 );
 
 server.get("/health", (req, res) => {
