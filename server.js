@@ -8,8 +8,8 @@ const server = express();
 const multer = require("multer");
 server.use(cors());
 
-server.use(express.json({ limit: "50mb" }));
-server.use(express.urlencoded({ limit: "50mb" }));
+server.use(express.json({ limit: Infinity }));
+server.use(express.urlencoded({ limit: Infinity }));
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -27,11 +27,10 @@ const upload = multer({
  *  formdata along with user_id and api_key in the authroization header.
  */
 server.post(
-  "/v2/upload",
-  [hasApiKey, upload.array("files"), createZip],
-  upload_to_s3_v2
+  "/v1/upload",
+  [hasApiKey, upload.array("images"), createZip],
+  upload_to_s3
 );
-
 server.get("/health", (req, res) => {
   res.status(200).send("ok");
 });

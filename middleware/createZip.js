@@ -5,6 +5,7 @@ module.exports = async (req, res, next) => {
   try {
     console.log("started zip creation");
     console.time("zipDone");
+    console.log({ files: req.files, file: req.file, body: req.body });
     const zip = new JSZip();
     if (!req?.files?.length) {
       return res.status(400).json({
