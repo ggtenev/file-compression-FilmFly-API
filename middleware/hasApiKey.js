@@ -2,7 +2,7 @@
 
 module.exports = (req, res, next) => {
   try {
-    let { authorization } = req.headers;
+    let { authorization = "" } = req.headers;
     authorization = authorization.split(" ")[1];
     if (!authorization) {
       return res.status(401).send("Unauthorized");
