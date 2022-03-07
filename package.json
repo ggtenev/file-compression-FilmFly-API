@@ -16,6 +16,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.17.2",
+    "firebase": "^8.6.5",
     "jszip": "^3.7.1",
     "multer": "^1.4.4",
     "progress-stream": "^2.0.0"

@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const hasApiKey = require("./middleware/hasApiKey");
@@ -34,7 +35,7 @@ server.post(
 server.get("/health", (req, res) => {
   res.status(200).send("ok");
 });
-server.get("/v1/get-file/:file_path", downloadZip);
+server.get("/v1/get-file/:file_path/:user_id/:link_path", downloadZip);
 server.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });

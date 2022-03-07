@@ -1,5 +1,25 @@
 const path = require("path");
 const fs = require("fs");
+const firebase = require("firebase");
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCPOhhhv7JtWtt9zIzX2sY-OeGaYI3IzBM",
+  authDomain: "film-fly-e6c68.firebaseapp.com",
+  projectId: "film-fly-e6c68",
+  storageBucket: "film-fly-e6c68.appspot.com",
+  messagingSenderId: "272978874372",
+  appId: "1:272978874372:web:1d4ccd48729affc9dca551",
+  measurementId: "G-1NDJJ63H5M",
+};
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+  +firebase
+    .firestore()
+    .settings({ experimentalForceLongPolling: true, merge: true });
+}
+
+firebase.firestore();
+firebase.storage();
 
 const AWS = require("aws-sdk");
 const {
@@ -51,12 +71,44 @@ exports.upload_to_s3 = async (req, res, next) => {
   }
 };
 exports.downloadZip = async (req, res, next) => {
-  const { file_path } = req.params;
+  const file_path = req.params.file_path;
+  const link_path = req.params.link_path.split("-_-").join("/");
+  const user_id = req.params.user_id;
+
+  const deleteObject = () => {
+    setTimeout(() => {
+      firebase
+        .firestore()
+        .collection("users")
+        .doc(user_id)
+        .onSnapshot((doc) => {
+          console.log("Home", doc.data());
+          let d = new Date();
+
+          doc.data().links.forEach((link) => {
+            if (link.url === String(link_path)) {
+              firebase
+                .firestore()
+                .collection("users")
+                .doc(user_id)
+                .update({
+                  links: firebase.firestore.FieldValue.arrayRemove(link),
+                })
+                .then(() => {});
+            }
+          });
+        });
+    }, 1000);
+  };
+
+  console.log(file_path, user_id, link_path);
   const [folder, file] = file_path.split("__");
   const s3 = new AWS.S3();
   const params = {
     Bucket: AWS_BUCKET_NAME,
     Key: `${folder}/${file}`,
+    // verb: "DELETE",
+    // parse_response: false,
   };
   //stream the file to user , after its done delete the file from s3
   let download = s3.getObject(params).createReadStream();
@@ -64,6 +116,8 @@ exports.downloadZip = async (req, res, next) => {
     console.log(err);
   });
   download.on("end", () => {
+    deleteObject();
+    console.log("Ended");
     s3.deleteObject(params, (err, data) => {
       if (err) console.log({ error: err });
       console.log("deleted from s3");
