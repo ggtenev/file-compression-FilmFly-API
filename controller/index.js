@@ -59,7 +59,6 @@ exports.upload_to_s3 = async (req, res, next) => {
     return res.status(200).json({
       message: "File uploaded successfully",
       success: true,
-
       url: `http://54.193.197.90:8080/v1/get-file/${String(KEY)
         .split("/")
         .join("__")}`,
@@ -71,59 +70,81 @@ exports.upload_to_s3 = async (req, res, next) => {
     });
   }
 };
-exports.downloadZip = async (req, res, next) => {
-  const file_path = req.params.file_path;
-  const link_path = req.params.link_path.split("-_-").join("/");
-  const user_id = req.params.user_id;
 
-  const deleteObject = () => {
-    setTimeout(() => {
-      firebase
+exports.downloadZip = async (req, res, next) => {
+  try {
+    const file_path = req.params.file_path;
+    const [folder, file] = file_path.split("__");
+
+    let link = `http://54.193.197.90:8080/v1/get-file/${file_path}`;
+    let user_link = await firebase
+      .firestore()
+      .collection("users")
+      .doc(folder)
+      .get();
+    if (!user_link.exists) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+    let user_links = user_link.data().links;
+    let is_link_exists = false;
+
+    user_links.forEach(({ url }) => {
+      if (url === link) {
+        is_link_exists = true;
+      }
+    });
+
+    if (!is_link_exists) {
+      return res.status(404).json({
+        message: "Link not found",
+        success: false,
+      });
+    }
+
+    const s3 = new AWS.S3();
+    const params = {
+      Bucket: AWS_BUCKET_NAME,
+      Key: `${folder}/${file}`,
+    };
+    let download = s3.getObject(params).createReadStream();
+    download.on("error", (err) => {
+      return res.status(500).json({
+        message: err.message,
+        success: false,
+      });
+    });
+    download.on("end", async () => {
+      await firebase
         .firestore()
         .collection("users")
-        .doc(user_id)
-        .onSnapshot((doc) => {
-          console.log("Home", doc.data());
-          let d = new Date();
-
-          doc.data().links.forEach((link) => {
-            if (link.url === String(link_path)) {
-              firebase
-                .firestore()
-                .collection("users")
-                .doc(user_id)
-                .update({
-                  links: firebase.firestore.FieldValue.arrayRemove(link),
-                })
-                .then(() => {});
-            }
-          });
+        .doc(folder)
+        .get()
+        .then(async (data) => {
+          await firebase
+            .firestore()
+            .collection("users")
+            .doc(folder)
+            .update({
+              links: data
+                .data()
+                .links.filter(
+                  (link) =>
+                    link.url !==
+                    `http://54.193.197.90:8080/v1/get-file/${file_path}`
+                ),
+            });
         });
-    }, 1000);
-  };
-
-  console.log(file_path, user_id, link_path);
-  const [folder, file] = file_path.split("__");
-  const s3 = new AWS.S3();
-  const params = {
-    Bucket: AWS_BUCKET_NAME,
-    Key: `${folder}/${file}`,
-    // verb: "DELETE",
-    // parse_response: false,
-  };
-  //stream the file to user , after its done delete the file from s3
-  let download = s3.getObject(params).createReadStream();
-  download.on("error", (err) => {
-    console.log(err);
-  });
-  download.on("end", () => {
-    deleteObject();
-    console.log("Ended");
-    s3.deleteObject(params, (err, data) => {
-      if (err) console.log({ error: err });
-      console.log("deleted from s3");
+      console.log("Download Finished");
     });
-  });
-  res.setHeader("Content-disposition", `attachment; filename=${file}`);
-  return download.pipe(res);
+    res.setHeader("Content-disposition", `attachment; filename=${file}`);
+    return download.pipe(res);
+  } catch (ex) {
+    return res.status(500).json({
+      message: ex.message,
+      success: false,
+    });
+  }
 };
